@@ -1,0 +1,41 @@
+# Salida de compilación e intermedios de Flutter/Dart
+.dart_tool/
+.fvm/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+/build/
+/ephemeral/
+
+# Archivos de configuración y credenciales móviles sensibles
+/android/app/google-services.json
+/ios/Runner/GoogleService-Info.plist
+*.keystore
+*.jks
+*.p12
+*.key
+*.mobileprovision
+
+# Variables de entorno
+.env
+
+# Archivos específicos de Android
+.gradle/
+/android/app/build/
+/android/app/local.properties
+/android/.gradle/
+
+# Archivos específicos de iOS/macOS
+/ios/Pods/
+/ios/Frameworks/
+/ios/DerivedData/
+*.xcworkspace
+!.vscode/
+.DS_Store
+
+# Archivos de IDEs (Android Studio / VS Code / Xcode)
+*.iml
+.idea/
+.vscode/
