@@ -12,21 +12,44 @@ void main() {
   testWidgets(
     'Ingreso exitoso muestra la empresa y Salir limpia el formulario',
     (tester) async {
+      String? profileAuth;
       final api = ApiClient(
         baseUrl: 'http://localhost:3000',
-        client: MockClient(
-          (_) async => http.Response(
+        client: MockClient((req) async {
+          if (req.url.path == '/mobile/perfil') {
+            profileAuth = req.headers['Authorization'];
+            return http.Response(
+              jsonEncode({
+                'nombre': 'Alumna Prueba',
+                'correoCorporativo': 'alumna@example.com',
+                'departamento': 'Finanzas',
+                'scoreRiesgo': 10,
+                'rachaDiasSeguros': 2,
+                'puntosTotales': 40,
+                'empresa': {'id': 1, 'nombre': 'Empresa prueba'},
+              }),
+              200,
+              headers: {'content-type': 'application/json; charset=utf-8'},
+            );
+          }
+          return http.Response(
             jsonEncode({
-              'empresa': 'Empresa prueba',
-              'user': {'id': 'user-1', 'email': 'alumna@example.com'},
+              'message': 'Dispositivo móvil vinculado exitosamente.',
+              'accessToken': 'token',
+              'usuario': {
+                'id': 'user-1',
+                'correoCorporativo': 'alumna@example.com',
+                'empresa': {'id': 1, 'nombre': 'Empresa prueba'},
+              },
             }),
-            201,
-          ),
-        ),
+            200,
+            headers: {'content-type': 'application/json; charset=utf-8'},
+          );
+        }),
       );
       addTearDown(api.close);
       await tester.pumpWidget(
-        PhishWardenApp(repository: ApiAuthRepository(api)),
+        PhishWardenApp(repository: ApiAuthRepository(api), apiClient: api),
       );
       await tester.enterText(find.byKey(const Key('companyCode')), 'SALA2026');
       await tester.enterText(
@@ -37,6 +60,7 @@ void main() {
       await tester.tap(find.byKey(const Key('linkButton')));
       await tester.pumpAndSettle();
       expect(find.text('Mi perfil'), findsOneWidget);
+      expect(profileAuth, 'Bearer token');
       expect(find.text('Empresa prueba'), findsOneWidget);
       expect(find.text('alumna@example.com'), findsOneWidget);
       await tester.tap(find.byTooltip('Ajustes'));

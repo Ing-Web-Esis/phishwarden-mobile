@@ -19,10 +19,12 @@ class PhishWardenApp extends StatefulWidget {
   const PhishWardenApp({
     super.key,
     this.repository,
+    this.apiClient,
     this.notifications,
     this.lessons,
   });
   final AuthRepository? repository;
+  final ApiClient? apiClient;
   final NotificationService? notifications;
   final LessonRepository? lessons;
 
@@ -42,7 +44,7 @@ class _PhishWardenAppState extends State<PhishWardenApp> {
   void initState() {
     super.initState();
     // La ejecución normal usa NestJS. Los tests pueden inyectar un mock.
-    _api = ApiClient(baseUrl: ApiConfig.baseUrl);
+    _api = widget.apiClient ?? ApiClient(baseUrl: ApiConfig.baseUrl);
     _repository = widget.repository ?? ApiAuthRepository(_api);
     _notifications = widget.notifications ?? NotificationService();
     _lessons = widget.lessons ?? LocalLessonRepository();
@@ -83,7 +85,7 @@ class _PhishWardenAppState extends State<PhishWardenApp> {
     _navigatorKey.currentState?.pushAndRemoveUntil(
       MaterialPageRoute<void>(
         builder: (_) => ProfileScreen(
-          repository: SessionProfileRepository(result),
+          repository: HttpProfileRepository(_api, result),
           themeMode: _themeMode,
           onThemeChanged: (value) => _themeMode.value = value,
           onTraining: _openPractice,

@@ -22,7 +22,22 @@ class ApiClient {
 
   Future<Map<String, dynamic>> post(
     String path,
-    Map<String, dynamic> body,
+    Map<String, dynamic> body, {
+    String? bearerToken,
+  }) => _send(
+    path,
+    bearerToken,
+    (uri, headers) =>
+        _client.post(uri, headers: headers, body: jsonEncode(body)),
+  );
+
+  Future<Map<String, dynamic>> get(String path, {String? bearerToken}) =>
+      _send(path, bearerToken, (uri, headers) => _client.get(uri, headers: headers));
+
+  Future<Map<String, dynamic>> _send(
+    String path,
+    String? bearerToken,
+    Future<http.Response> Function(Uri uri, Map<String, String> headers) send,
   ) async {
     final base = Uri.tryParse(baseUrl);
     if (base == null ||
@@ -40,18 +55,14 @@ class ApiClient {
       );
     }
     final uri = Uri.parse('${baseUrl.replaceFirst(RegExp(r'/+$'), '')}/$path');
+    final headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      if (bearerToken != null) 'Authorization': 'Bearer $bearerToken',
+    };
     http.Response response;
     try {
-      response = await _client
-          .post(
-            uri,
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-            },
-            body: jsonEncode(body),
-          )
-          .timeout(timeout);
+      response = await send(uri, headers).timeout(timeout);
     } on TimeoutException {
       throw const ApiFailure(
         'El servidor tardó demasiado. Comprueba la conexión y vuelve a intentarlo.',

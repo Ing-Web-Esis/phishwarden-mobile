@@ -19,17 +19,23 @@ void main() {
       baseUrl: 'http://localhost:3000/',
       client: MockClient((req) async {
         expect(req.method, 'POST');
-        expect(req.url.path, '/auth/login');
+        expect(req.url.path, '/mobile/auth/vincular');
         expect(jsonDecode(req.body), {
-          'email': 'alumna@example.com',
-          'codigoEmpresa': 'SALA2026',
+          'correoCorporativo': 'alumna@example.com',
+          'codigoAcceso': 'SALA2026',
         });
         return http.Response(
           jsonEncode({
-            'empresa': 'Empresa prueba',
-            'user': {'id': 'user-1', 'email': 'alumna@example.com'},
+            'message': 'Dispositivo móvil vinculado exitosamente.',
+            'accessToken': 'token',
+            'usuario': {
+              'id': 'user-1',
+              'correoCorporativo': 'alumna@example.com',
+              'empresa': {'id': 1, 'nombre': 'Empresa prueba'},
+            },
           }),
-          201,
+          200,
+          headers: {'content-type': 'application/json; charset=utf-8'},
         );
       }),
     );
@@ -38,6 +44,7 @@ void main() {
     expect(result.isDemo, isFalse);
     expect(result.userId, 'user-1');
     expect(result.companyName, 'Empresa prueba');
+    expect(result.accessToken, 'token');
   });
 
   test('Propaga el 401 sin convertirlo en ingreso exitoso', () async {

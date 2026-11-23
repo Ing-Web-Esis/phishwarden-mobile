@@ -12,10 +12,13 @@ class LinkResult {
     required this.isDemo,
     this.userId,
     this.companyName,
+    this.accessToken,
   });
   final String companyCode;
   final String email;
   final bool isDemo;
   final String? userId;
   final String? companyName;
+  // JWT de colaborador (rol EMPLOYEE) para los endpoints /mobile protegidos.
+  final String? accessToken;
 }
