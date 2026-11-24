@@ -23,11 +23,13 @@ void main() {
   testWidgets(
     'Ingreso exitoso muestra la empresa y Salir limpia el formulario',
     (tester) async {
+      var profileLoads = 0;
       String? profileAuth;
       final api = ApiClient(
         baseUrl: 'http://localhost:3000',
         client: MockClient((req) async {
           if (req.url.path == '/mobile/perfil') {
+            profileLoads++;
             profileAuth = req.headers['Authorization'];
             return http.Response(
               jsonEncode({
@@ -109,8 +111,36 @@ void main() {
       expect(profileAuth, 'Bearer token');
       expect(find.text('Empresa prueba'), findsOneWidget);
       expect(find.text('alumna@example.com'), findsOneWidget);
-      expect(find.text('Identificación de Phishing por Correo'), findsOneWidget);
+      expect(
+        find.text('Identificación de Phishing por Correo'),
+        findsOneWidget,
+      );
       expect(find.text('Novato Consciente'), findsOneWidget);
+      final pages = find.byType(TabBarView);
+      await tester.fling(pages, const Offset(-500, 0), 1200);
+      await tester.pumpAndSettle();
+      expect(find.text('Aprende a protegerte').hitTestable(), findsOneWidget);
+      expect(
+        tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
+        1,
+      );
+
+      await tester.tap(find.text('Ranking'));
+      await tester.pumpAndSettle();
+      expect(
+        tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
+        2,
+      );
+      await tester.fling(pages, const Offset(500, 0), 1200);
+      await tester.pumpAndSettle();
+      expect(
+        tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
+        1,
+      );
+      await tester.tap(find.text('Perfil'));
+      await tester.pumpAndSettle();
+      expect(find.text('Mi perfil').hitTestable(), findsOneWidget);
+      expect(profileLoads, 1);
       await tester.tap(find.byTooltip('Ajustes'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Cerrar sesión'));

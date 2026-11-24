@@ -12,16 +12,18 @@ class ProfileScreen extends StatefulWidget {
     required this.repository,
     required this.themeMode,
     required this.onThemeChanged,
-    required this.onTraining,
+    this.onTraining,
     required this.onLesson,
     required this.onLogout,
+    this.onRanking,
   });
   final ProfileRepository repository;
   final ValueListenable<ThemeMode> themeMode;
   final ValueChanged<ThemeMode> onThemeChanged;
-  final VoidCallback onTraining;
+  final VoidCallback? onTraining;
   final VoidCallback onLesson;
   final VoidCallback onLogout;
+  final VoidCallback? onRanking;
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -100,11 +102,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return Scaffold(
-      bottomNavigationBar: MainBottomNav(
-        selectedIndex: MainBottomNav.profileIndex,
-        onProfile: () {},
-        onTraining: widget.onTraining,
-      ),
+      bottomNavigationBar: widget.onTraining == null
+          ? null
+          : MainBottomNav(
+              selectedIndex: MainBottomNav.profileIndex,
+              onProfile: () {},
+              onTraining: widget.onTraining!,
+              onRanking: widget.onRanking,
+            ),
       body: SafeArea(
         bottom: false,
         child: ListenableBuilder(
@@ -331,8 +336,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          for (final medal in (profile.medals ?? const [])
-                              .take(3))
+                          for (final medal in (profile.medals ?? const []).take(
+                            3,
+                          ))
                             Expanded(
                               child: Opacity(
                                 opacity: medal.unlocked ? 1 : 0.4,
@@ -347,9 +353,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     Text(
                                       medal.name,
                                       textAlign: TextAlign.center,
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.bodySmall,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall,
                                     ),
                                   ],
                                 ),

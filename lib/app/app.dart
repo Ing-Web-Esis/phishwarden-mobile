@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 
 import '../core/theme/app_theme.dart';
+import '../core/navigation/main_tabs.dart';
 import '../features/auth/data/auth_repository.dart';
 import '../features/auth/data/mock_auth_repository.dart';
 import '../features/auth/data/api_auth_repository.dart';
 import '../features/auth/data/models/link_models.dart';
 import '../features/profile/data/profile_repository.dart';
 import '../features/profile/presentation/profile_screen.dart';
+import '../features/ranking/data/ranking_repository.dart';
+import '../features/ranking/presentation/ranking_screen.dart';
 import '../core/network/api_client.dart';
 import '../core/network/api_config.dart';
 import '../features/auth/presentation/welcome_screen.dart';
@@ -64,12 +67,6 @@ class _PhishWardenAppState extends State<PhishWardenApp> {
     WidgetsBinding.instance.ensureVisualUpdate();
   }
 
-  void _openPractice() => _navigatorKey.currentState?.push(
-    MaterialPageRoute<void>(
-      builder: (_) => NotificationPracticeScreen(service: _notifications),
-    ),
-  );
-
   void _openLesson(String id) => _navigatorKey.currentState?.push(
     MaterialPageRoute<void>(
       settings: RouteSettings(name: '/lesson/$id'),
@@ -78,29 +75,44 @@ class _PhishWardenAppState extends State<PhishWardenApp> {
   );
 
   void _openAccess(LinkResult result) {
+    final navigator = _navigatorKey.currentState!;
     if (result.isDemo) {
-      _openPractice();
+      navigator.push(
+        MaterialPageRoute<void>(
+          builder: (_) => NotificationPracticeScreen(
+            service: _notifications,
+            onProfile: () => navigator.maybePop(),
+          ),
+        ),
+      );
       return;
     }
-    _navigatorKey.currentState?.pushAndRemoveUntil(
+    navigator.pushAndRemoveUntil(
       MaterialPageRoute<void>(
-        builder: (_) => ProfileScreen(
-          repository: HttpProfileRepository(_api, result),
-          themeMode: _themeMode,
-          onThemeChanged: (value) => _themeMode.value = value,
-          onTraining: _openPractice,
-          onLesson: () => _openLesson(LocalLessonRepository.practiceLessonId),
-          onLogout: _logout,
+        builder: (_) => MainTabs(
+          profile: ProfileScreen(
+            repository: HttpProfileRepository(_api, result),
+            themeMode: _themeMode,
+            onThemeChanged: (value) => _themeMode.value = value,
+            onLesson: () => _openLesson(LocalLessonRepository.practiceLessonId),
+            onLogout: _logout,
+          ),
+          training: NotificationPracticeScreen(service: _notifications),
+          ranking: RankingScreen(
+            repository: HttpRankingRepository(_api, result),
+          ),
         ),
       ),
       (_) => false,
     );
   }
 
-  void _logout() => _navigatorKey.currentState?.pushAndRemoveUntil(
-    MaterialPageRoute<void>(builder: (_) => _welcome()),
-    (_) => false,
-  );
+  void _logout() {
+    _navigatorKey.currentState?.pushAndRemoveUntil(
+      MaterialPageRoute<void>(builder: (_) => _welcome()),
+      (_) => false,
+    );
+  }
 
   WelcomeScreen _welcome() => WelcomeScreen(
     repository: _repository,
