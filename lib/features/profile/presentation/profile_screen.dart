@@ -168,6 +168,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               );
             }
             final profile = _model.profile!;
+            final nextLesson = profile.nextLesson;
             return Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 480),
@@ -325,15 +326,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         ),
                                       ),
                                       const SizedBox(height: 3),
-                                      const Text(
-                                        'Reconoce un correo de phishing',
-                                        style: TextStyle(
+                                      Text(
+                                        nextLesson?.title ??
+                                            'Sin microlección disponible',
+                                        style: const TextStyle(
                                           fontSize: 13,
                                           height: 1.3,
                                         ),
                                       ),
                                       Text(
-                                        '1–2 min · Incluye una pregunta',
+                                        nextLesson == null
+                                            ? 'Aún no disponible'
+                                            : '${nextLesson.durationMinutes} min · ${nextLesson.points} pts',
                                         style: Theme.of(context)
                                             .textTheme
                                             .bodySmall
@@ -354,50 +358,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ),
                       const SizedBox(height: 18),
-                      const _SectionTitle(
+                      _SectionTitle(
                         title: 'Tus medallas',
                         action: 'Ver logros',
-                        status: 'Sin datos',
+                        status: profile.medals == null ? 'Sin datos' : null,
                       ),
                       const SizedBox(height: 8),
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          for (final badge in [
-                            (Icons.directions_walk_outlined, 'Primer paso'),
-                            (
-                              Icons.local_fire_department_outlined,
-                              'Racha de 3',
-                            ),
-                            (Icons.visibility_outlined, 'Ojo atento'),
-                          ])
+                          for (final medal in (profile.medals ?? const [])
+                              .take(3))
                             Expanded(
-                              child: Column(
-                                children: [
-                                  Icon(
-                                    badge.$1,
-                                    color: colors.onSurfaceVariant,
-                                    size: 24,
-                                  ),
-                                  const SizedBox(height: 5),
-                                  Text(
-                                    badge.$2,
-                                    textAlign: TextAlign.center,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall,
-                                  ),
-                                ],
+                              child: Opacity(
+                                opacity: medal.unlocked ? 1 : 0.4,
+                                child: Column(
+                                  children: [
+                                    Icon(
+                                      _medalIcon(medal.iconName),
+                                      color: colors.onSurfaceVariant,
+                                      size: 24,
+                                    ),
+                                    const SizedBox(height: 5),
+                                    Text(
+                                      medal.name,
+                                      textAlign: TextAlign.center,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.bodySmall,
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                         ],
                       ),
                       const SizedBox(height: 10),
-                      Text(
-                        'Riesgo, progreso, simulaciones y medallas aún no disponibles.',
-                        style: Theme.of(context).textTheme.bodySmall,
-                        textAlign: TextAlign.center,
-                      ),
+                      if (profile.simulationsReceived == null)
+                        Text(
+                          'Etiqueta de riesgo y simulaciones aún no disponibles.',
+                          style: Theme.of(context).textTheme.bodySmall,
+                          textAlign: TextAlign.center,
+                        ),
                     ],
                   ),
                 ),
@@ -414,6 +416,13 @@ Color _accent(BuildContext context) =>
     Theme.of(context).brightness == Brightness.dark
     ? AppTheme.gold
     : AppTheme.ink;
+
+IconData _medalIcon(String iconName) => switch (iconName) {
+  'shield-alert' => Icons.gpp_maybe_outlined,
+  'shield-check' => Icons.verified_user_outlined,
+  'eye' => Icons.visibility_outlined,
+  _ => Icons.workspace_premium_outlined,
+};
 
 class _Identity extends StatelessWidget {
   const _Identity({required this.profile});

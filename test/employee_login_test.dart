@@ -32,6 +32,41 @@ void main() {
               headers: {'content-type': 'application/json; charset=utf-8'},
             );
           }
+          if (req.url.path == '/mobile/lecciones') {
+            return http.Response(
+              jsonEncode({
+                'asignadasPendientes': [
+                  {
+                    'id': 1,
+                    'titulo': 'Identificación de Phishing por Correo',
+                    'duracionMinutos': 2,
+                    'puntosRecompensa': 10,
+                  },
+                ],
+                'catalogoDisponible': [],
+                'completadas': [],
+              }),
+              200,
+              headers: {'content-type': 'application/json; charset=utf-8'},
+            );
+          }
+          if (req.url.path == '/mobile/medallas') {
+            return http.Response(
+              jsonEncode({
+                'puntosTotales': 40,
+                'medallas': [
+                  {
+                    'id': 1,
+                    'nombre': 'Novato Consciente',
+                    'iconoUrl': 'shield-alert',
+                    'desbloqueada': true,
+                  },
+                ],
+              }),
+              200,
+              headers: {'content-type': 'application/json; charset=utf-8'},
+            );
+          }
           return http.Response(
             jsonEncode({
               'message': 'Dispositivo móvil vinculado exitosamente.',
@@ -63,6 +98,8 @@ void main() {
       expect(profileAuth, 'Bearer token');
       expect(find.text('Empresa prueba'), findsOneWidget);
       expect(find.text('alumna@example.com'), findsOneWidget);
+      expect(find.text('Identificación de Phishing por Correo'), findsOneWidget);
+      expect(find.text('Novato Consciente'), findsOneWidget);
       await tester.tap(find.byTooltip('Ajustes'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Cerrar sesión'));

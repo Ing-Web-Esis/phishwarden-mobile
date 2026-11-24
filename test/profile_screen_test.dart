@@ -28,6 +28,11 @@ class RecoveringProfileRepository implements ProfileRepository {
     return const EmployeeProfile(
       email: 'alumna@empresa.example',
       companyName: 'Empresa prueba',
+      nextLesson: LessonPreview(
+        title: 'Reconoce un correo de phishing',
+        durationMinutes: 2,
+        points: 10,
+      ),
     );
   }
 }
@@ -154,8 +159,8 @@ void main() {
         capture.dispose();
       });
 
-      await tester.ensureVisible(find.text('Reconoce un correo de phishing'));
-      await tester.tap(find.text('Reconoce un correo de phishing'));
+      await tester.ensureVisible(find.text('MICROLECCIÓN DE PRÁCTICA'));
+      await tester.tap(find.text('MICROLECCIÓN DE PRÁCTICA'));
       expect(lessons, 1);
       await tester.tap(find.text('Capacitación'));
       expect(training, 1);
