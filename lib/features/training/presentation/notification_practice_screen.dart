@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/navigation/main_bottom_nav.dart';
 import '../../../core/notifications/notification_service.dart';
 import 'notification_practice_view_model.dart';
 
@@ -29,6 +30,11 @@ class _NotificationPracticeScreenState
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('Prueba en Android')),
+    bottomNavigationBar: MainBottomNav(
+      selectedIndex: MainBottomNav.trainingIndex,
+      onProfile: () => Navigator.maybePop(context),
+      onTraining: () {},
+    ),
     body: ListenableBuilder(
       listenable: _model,
       builder: (context, _) => ListView(

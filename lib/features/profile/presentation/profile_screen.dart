@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../../../core/navigation/main_bottom_nav.dart';
 import '../../../core/theme/app_theme.dart';
 import '../data/profile_repository.dart';
 import 'profile_view_model.dart';
@@ -99,47 +100,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return Scaffold(
-      bottomNavigationBar: DecoratedBox(
-        decoration: BoxDecoration(
-          border: Border(top: BorderSide(color: colors.outline)),
-        ),
-        child: NavigationBar(
-          height: 76,
-          selectedIndex: 0,
-          backgroundColor: colors.surfaceContainerLow,
-          indicatorColor: AppTheme.gold,
-          labelTextStyle: WidgetStateProperty.resolveWith(
-            (states) => TextStyle(
-              fontSize: 11,
-              color: states.contains(WidgetState.selected)
-                  ? _accent(context)
-                  : colors.onSurfaceVariant,
-              fontWeight: states.contains(WidgetState.selected)
-                  ? FontWeight.w700
-                  : FontWeight.w400,
-            ),
-          ),
-          onDestinationSelected: (index) {
-            if (index == 1) widget.onTraining();
-          },
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.person_outline),
-              selectedIcon: Icon(Icons.person_outline, color: AppTheme.ink),
-              label: 'Perfil',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.menu_book_outlined),
-              label: 'Capacitación',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.emoji_events_outlined),
-              label: 'Ranking',
-              enabled: false,
-              tooltip: 'Ranking · Próximamente',
-            ),
-          ],
-        ),
+      bottomNavigationBar: MainBottomNav(
+        selectedIndex: MainBottomNav.profileIndex,
+        onProfile: () {},
+        onTraining: widget.onTraining,
       ),
       body: SafeArea(
         bottom: false,

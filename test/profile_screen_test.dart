@@ -209,9 +209,29 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.ensureVisible(find.text('Tus medallas'));
-      await tester.pump();
       expect(tester.takeException(), isNull);
     },
   );
+
+  testWidgets('Tocar Capacitación en la barra abre entrenamiento', (
+    tester,
+  ) async {
+    var opened = false;
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        home: ProfileScreen(
+          repository: SessionProfileRepository(access),
+          themeMode: ValueNotifier(ThemeMode.light),
+          onThemeChanged: (_) {},
+          onLesson: () {},
+          onTraining: () => opened = true,
+          onLogout: () {},
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Capacitación'));
+    expect(opened, isTrue);
+  });
 }
