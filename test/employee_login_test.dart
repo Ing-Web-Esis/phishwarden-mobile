@@ -7,8 +7,19 @@ import 'package:http/testing.dart';
 import 'package:phishwarden_movil/app/app.dart';
 import 'package:phishwarden_movil/core/network/api_client.dart';
 import 'package:phishwarden_movil/features/auth/data/api_auth_repository.dart';
+import 'package:phishwarden_movil/features/profile/data/profile_repository.dart';
 
 void main() {
+  test('riskLabelFor usa los umbrales Bajo 0-30, Medio 31-60, Alto 61-100', () {
+    expect(riskLabelFor(null), isNull);
+    expect(riskLabelFor(0), 'Bajo');
+    expect(riskLabelFor(30), 'Bajo');
+    expect(riskLabelFor(31), 'Medio');
+    expect(riskLabelFor(60), 'Medio');
+    expect(riskLabelFor(61), 'Alto');
+    expect(riskLabelFor(100), 'Alto');
+  });
+
   testWidgets(
     'Ingreso exitoso muestra la empresa y Salir limpia el formulario',
     (tester) async {

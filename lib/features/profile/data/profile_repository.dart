@@ -55,6 +55,14 @@ class MedalPreview {
   final String iconName;
 }
 
+/// Bajo 0-30, Medio 31-60, Alto 61-100. Null si el score no está disponible.
+String? riskLabelFor(int? score) {
+  if (score == null) return null;
+  if (score <= 30) return 'Bajo';
+  if (score <= 60) return 'Medio';
+  return 'Alto';
+}
+
 abstract interface class ProfileRepository {
   Future<EmployeeProfile> load();
 }
@@ -86,6 +94,7 @@ class HttpProfileRepository implements ProfileRepository {
       name: data['nombre'] as String?,
       department: data['departamento'] as String?,
       riskScore: data['scoreRiesgo'] as int?,
+      riskLabel: riskLabelFor(data['scoreRiesgo'] as int?),
       safeDays: data['rachaDiasSeguros'] as int?,
       learningPoints: data['puntosTotales'] as int?,
       nextLesson: _nextLesson(results[1]),
