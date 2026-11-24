@@ -51,6 +51,8 @@ void main() {
                 'asignadasPendientes': [
                   {
                     'id': 1,
+                    'metodoAtaque': 'phishing',
+                    'estado': 'pendiente',
                     'titulo': 'Identificación de Phishing por Correo',
                     'duracionMinutos': 2,
                     'puntosRecompensa': 10,

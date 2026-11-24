@@ -35,10 +35,12 @@ class EmployeeProfile {
 
 class LessonPreview {
   const LessonPreview({
+    this.id,
     required this.title,
     required this.durationMinutes,
     required this.points,
   });
+  final int? id;
   final String title;
   final int durationMinutes;
   final int points;
@@ -122,6 +124,7 @@ class HttpProfileRepository implements ProfileRepository {
     if (candidatas.isEmpty) return null;
     final leccion = candidatas.first as Map<String, dynamic>;
     return LessonPreview(
+      id: leccion['id'] as int?,
       title: leccion['titulo'] as String? ?? '',
       durationMinutes: leccion['duracionMinutos'] as int? ?? 0,
       points: leccion['puntosRecompensa'] as int? ?? 0,

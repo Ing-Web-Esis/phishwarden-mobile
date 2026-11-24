@@ -17,6 +17,9 @@ import '../core/notifications/notification_service.dart';
 import '../features/training/data/lesson_repository.dart';
 import '../features/training/presentation/lesson_screen.dart';
 import '../features/training/presentation/notification_practice_screen.dart';
+import '../features/training/data/training_repository.dart';
+import '../features/training/presentation/training_screen.dart';
+import '../features/training/presentation/training_lesson_screen.dart';
 
 class PhishWardenApp extends StatefulWidget {
   const PhishWardenApp({
@@ -42,6 +45,10 @@ class _PhishWardenAppState extends State<PhishWardenApp> {
   late final LessonRepository _lessons;
   final _navigatorKey = GlobalKey<NavigatorState>();
   final _themeMode = ValueNotifier(ThemeMode.system);
+  final _trainingRefresh = ValueNotifier(0);
+  final _profileRequest = ValueNotifier(0);
+  TrainingRepository? _training;
+  int? _pendingTrainingId;
 
   @override
   void initState() {
@@ -59,6 +66,18 @@ class _PhishWardenAppState extends State<PhishWardenApp> {
     final id = _notifications.pendingLesson.value;
     if (id == null || id.isEmpty) return;
     _notifications.pendingLesson.value = null;
+    final trainingId = int.tryParse(id);
+    if (trainingId != null && trainingId > 0) {
+      _pendingTrainingId = trainingId;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _training != null) {
+          _pendingTrainingId = null;
+          _openTrainingLesson(trainingId);
+        }
+      });
+      WidgetsBinding.instance.ensureVisualUpdate();
+      return;
+    }
     // MaterialApp debe haber construido su Navigator antes de abrir la ruta.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -87,27 +106,65 @@ class _PhishWardenAppState extends State<PhishWardenApp> {
       );
       return;
     }
+    final training = HttpTrainingRepository(_api, result);
+    _training = training;
     navigator.pushAndRemoveUntil(
       MaterialPageRoute<void>(
         builder: (_) => MainTabs(
+          profileRequest: _profileRequest,
           profile: ProfileScreen(
             repository: HttpProfileRepository(_api, result),
             themeMode: _themeMode,
             onThemeChanged: (value) => _themeMode.value = value,
             onLesson: () => _openLesson(LocalLessonRepository.practiceLessonId),
+            onTrainingLesson: _openTrainingLesson,
+            refresh: _trainingRefresh,
             onLogout: _logout,
           ),
-          training: NotificationPracticeScreen(service: _notifications),
+          training: TrainingScreen(
+            repository: training,
+            onLesson: _openTrainingLesson,
+            refresh: _trainingRefresh,
+          ),
           ranking: RankingScreen(
             repository: HttpRankingRepository(_api, result),
+            refresh: _trainingRefresh,
           ),
         ),
       ),
       (_) => false,
     );
+    final pending = _pendingTrainingId;
+    _pendingTrainingId = null;
+    if (pending != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _training != null) _openTrainingLesson(pending);
+      });
+    }
+  }
+
+  void _openTrainingLesson(int id) {
+    final repository = _training;
+    if (repository == null) return;
+    _navigatorKey.currentState?.push(
+      MaterialPageRoute<void>(
+        settings: RouteSettings(name: '/training/$id'),
+        builder: (_) => TrainingLessonScreen(
+          id: id,
+          repository: repository,
+          onEvaluated: () => _trainingRefresh.value++,
+          onProfile: () {
+            _profileRequest.value++;
+            _navigatorKey.currentState?.popUntil((route) => route.isFirst);
+          },
+        ),
+      ),
+    );
   }
 
   void _logout() {
+    _training = null;
+    _pendingTrainingId = null;
     _navigatorKey.currentState?.pushAndRemoveUntil(
       MaterialPageRoute<void>(builder: (_) => _welcome()),
       (_) => false,
@@ -127,6 +184,8 @@ class _PhishWardenAppState extends State<PhishWardenApp> {
     _notifications.pendingLesson.removeListener(_openPendingLesson);
     _api.close();
     _themeMode.dispose();
+    _trainingRefresh.dispose();
+    _profileRequest.dispose();
     super.dispose();
   }
 

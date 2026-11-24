@@ -8,11 +8,13 @@ class MainTabs extends StatelessWidget {
     required this.profile,
     required this.training,
     required this.ranking,
+    this.profileRequest,
   });
 
   final Widget profile;
   final Widget training;
   final Widget ranking;
+  final Listenable? profileRequest;
 
   @override
   Widget build(BuildContext context) => DefaultTabController(
@@ -21,26 +23,62 @@ class MainTabs extends StatelessWidget {
     child: Builder(
       builder: (context) {
         final tabs = DefaultTabController.of(context);
-        return Scaffold(
-          body: TabBarView(
-            children: [
-              for (final page in [profile, training, ranking])
-                _RetainedTab(child: page),
-            ],
-          ),
-          bottomNavigationBar: ListenableBuilder(
-            listenable: tabs,
-            builder: (context, _) => MainBottomNav(
-              selectedIndex: tabs.index,
-              onProfile: () => tabs.animateTo(MainBottomNav.profileIndex),
-              onTraining: () => tabs.animateTo(MainBottomNav.trainingIndex),
-              onRanking: () => tabs.animateTo(MainBottomNav.rankingIndex),
+        return _ProfileRequestListener(
+          request: profileRequest,
+          onRequest: () => tabs.animateTo(MainBottomNav.profileIndex),
+          child: Scaffold(
+            body: TabBarView(
+              children: [
+                for (final page in [profile, training, ranking])
+                  _RetainedTab(child: page),
+              ],
+            ),
+            bottomNavigationBar: ListenableBuilder(
+              listenable: tabs,
+              builder: (context, _) => MainBottomNav(
+                selectedIndex: tabs.index,
+                onProfile: () => tabs.animateTo(MainBottomNav.profileIndex),
+                onTraining: () => tabs.animateTo(MainBottomNav.trainingIndex),
+                onRanking: () => tabs.animateTo(MainBottomNav.rankingIndex),
+              ),
             ),
           ),
         );
       },
     ),
   );
+}
+
+class _ProfileRequestListener extends StatefulWidget {
+  const _ProfileRequestListener({
+    required this.request,
+    required this.onRequest,
+    required this.child,
+  });
+  final Listenable? request;
+  final VoidCallback onRequest;
+  final Widget child;
+  @override
+  State<_ProfileRequestListener> createState() =>
+      _ProfileRequestListenerState();
+}
+
+class _ProfileRequestListenerState extends State<_ProfileRequestListener> {
+  void _request() => widget.onRequest();
+  @override
+  void initState() {
+    super.initState();
+    widget.request?.addListener(_request);
+  }
+
+  @override
+  void dispose() {
+    widget.request?.removeListener(_request);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }
 
 class _RetainedTab extends StatefulWidget {

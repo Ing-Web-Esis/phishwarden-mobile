@@ -16,6 +16,8 @@ class ProfileScreen extends StatefulWidget {
     required this.onLesson,
     required this.onLogout,
     this.onRanking,
+    this.onTrainingLesson,
+    this.refresh,
   });
   final ProfileRepository repository;
   final ValueListenable<ThemeMode> themeMode;
@@ -24,6 +26,8 @@ class ProfileScreen extends StatefulWidget {
   final VoidCallback onLesson;
   final VoidCallback onLogout;
   final VoidCallback? onRanking;
+  final ValueChanged<int>? onTrainingLesson;
+  final Listenable? refresh;
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -36,10 +40,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _model = ProfileViewModel(widget.repository)..load();
+    widget.refresh?.addListener(_model.load);
   }
 
   @override
   void dispose() {
+    widget.refresh?.removeListener(_model.load);
     _model.dispose();
     super.dispose();
   }
@@ -265,7 +271,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         color: colors.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(18),
                         child: InkWell(
-                          onTap: widget.onLesson,
+                          onTap: widget.onTrainingLesson == null
+                              ? widget.onLesson
+                              : nextLesson?.id == null
+                              ? null
+                              : () => widget.onTrainingLesson!(nextLesson!.id!),
                           borderRadius: BorderRadius.circular(18),
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
@@ -286,7 +296,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        'MICROLECCIÓN DE PRÁCTICA',
+                                        widget.onTrainingLesson == null
+                                            ? 'MICROLECCIÓN DE PRÁCTICA'
+                                            : 'TU SIGUIENTE MICROLECCIÓN',
                                         style: TextStyle(
                                           fontSize: 10,
                                           height: 1.1,

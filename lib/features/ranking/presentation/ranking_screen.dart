@@ -10,10 +10,12 @@ class RankingScreen extends StatefulWidget {
     required this.repository,
     this.onProfile,
     this.onTraining,
+    this.refresh,
   });
   final RankingRepository repository;
   final VoidCallback? onProfile;
   final VoidCallback? onTraining;
+  final Listenable? refresh;
 
   @override
   State<RankingScreen> createState() => _RankingScreenState();
@@ -22,7 +24,21 @@ class RankingScreen extends StatefulWidget {
 class _RankingScreenState extends State<RankingScreen> {
   late Future<RankingData> _future = widget.repository.load();
 
-  void _retry() => setState(() => _future = widget.repository.load());
+  @override
+  void initState() {
+    super.initState();
+    widget.refresh?.addListener(_retry);
+  }
+
+  @override
+  void dispose() {
+    widget.refresh?.removeListener(_retry);
+    super.dispose();
+  }
+
+  void _retry() => setState(() {
+    _future = widget.repository.load();
+  });
 
   @override
   Widget build(BuildContext context) => Scaffold(
