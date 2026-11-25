@@ -200,19 +200,7 @@ class _TrainingLessonScreenState extends State<TrainingLessonScreen> {
         ),
       ],
       if (lesson.content?.trim().isNotEmpty == true)
-        TrainingCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Contenido de la microlección',
-                style: TextStyle(fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(height: 8),
-              SelectableText(lesson.content!),
-            ],
-          ),
-        ),
+        _contentCard(lesson.content!.trim()),
       if (!lesson.isPhishing &&
           !lesson.isSmishing &&
           lesson.content?.trim().isNotEmpty != true)
@@ -244,6 +232,53 @@ class _TrainingLessonScreenState extends State<TrainingLessonScreen> {
           child: Text('El quiz de esta lección aún no está disponible.'),
         ),
     ];
+  }
+
+  Widget _contentCard(String content) {
+    final uri = Uri.tryParse(content);
+    final imageUri = uri != null && uri.scheme == 'https' && uri.host.isNotEmpty
+        ? uri
+        : null;
+
+    return TrainingCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Contenido de la microlección',
+            style: TextStyle(fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 8),
+          if (imageUri == null)
+            SelectableText(content)
+          else
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.network(
+                imageUri.toString(),
+                width: double.infinity,
+                fit: BoxFit.cover,
+                loadingBuilder: (context, child, progress) {
+                  if (progress == null) return child;
+                  return const SizedBox(
+                    height: 180,
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                },
+                errorBuilder: (context, error, stackTrace) => const SizedBox(
+                  height: 180,
+                  child: Center(
+                    child: Text(
+                      'No se pudo cargar la imagen. Revisa tu conexión a Internet.',
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
   }
 
   List<Widget> _quizWidgets(BuildContext context) {

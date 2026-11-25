@@ -48,6 +48,7 @@ const resultJson = {
 class FakeTraining implements TrainingRepository {
   bool multipleQuestions = false;
   bool failLoad = false, failSubmit = false;
+  String? lessonContent;
   int submissions = 0;
   Completer<TrainingResult>? pending;
   @override
@@ -69,6 +70,7 @@ class FakeTraining implements TrainingRepository {
     if (failLoad) throw Exception('offline');
     return TrainingLesson.fromJson({
       ...lessonJson,
+      if (lessonContent != null) 'contenidoMultimedia': lessonContent,
       if (multipleQuestions)
         'preguntas': [
           ...(lessonJson['preguntas'] as List),
@@ -233,6 +235,35 @@ void main() {
     final loading = vm.load();
     vm.dispose();
     await loading;
+  });
+
+  testWidgets('Muestra URLs HTTPS de contenido como imágenes', (tester) async {
+    const imageUrl = 'https://images.unsplash.com/photo-example';
+    final repo = FakeTraining()..lessonContent = imageUrl;
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        home: TrainingLessonScreen(
+          id: 17,
+          repository: repo,
+          onEvaluated: () {},
+          onProfile: () {},
+        ),
+      ),
+    );
+    await tester.scrollUntilVisible(
+      find.text('Contenido de la microlección'),
+      200,
+    );
+    await tester.pumpAndSettle();
+
+    final image = tester.widget<Image>(find.byType(Image));
+    expect(
+      image.image,
+      isA<NetworkImage>().having((provider) => provider.url, 'url', imageUrl),
+    );
+    expect(find.text(imageUrl), findsNothing);
+    expect(tester.takeException(), isNull);
   });
 
   for (final dark in [false, true]) {
